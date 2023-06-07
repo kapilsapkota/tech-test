@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Jobs\ProcessNbnApplication;
+use App\Models\Application;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -16,6 +18,13 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        $applications = Application::whereHas('plan', function ($query){
+            $query->where('type','nbn');
+        })->get();
+
+        foreach ($applications as $application){
+            $schedule->job(new ProcessNbnApplication($application))->everyFiveMinutes();
+        }
     }
 
     /**
